@@ -1,25 +1,26 @@
-# config.py
+ï»¿# config.py
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'clave_super_segura'
-    
-    # Configuración de base de datos PostgreSQL
-    # En desarrollo: usa DATABASE_URL del archivo .env
-    # En Render: usa DATABASE_URL de las variables de entorno de Render
-    database_url = os.environ.get('DATABASE_URL')
-    
-    if database_url:
-        # SQLAlchemy requiere 'postgresql://' en lugar de 'postgres://'
-        if database_url.startswith('postgres://'):
-            database_url = database_url.replace('postgres://', 'postgresql://', 1)
-        SQLALCHEMY_DATABASE_URI = database_url + '?sslmode=require'
-    else:
-        # Fallback: tu configuración local actual (PostgreSQL local)
-        SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://postgres:jes8026@localhost:5432/permisos'
-    
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'clave_super_segura')
+
+    # Base de datos (Render o local)
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+
+    # Fix para URLs antiguas tipo postgres://
+    if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
+        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace(
+            'postgres://', 'postgresql://', 1
+        )
+
+    # Fallback para desarrollo local
+    if not SQLALCHEMY_DATABASE_URI:
+        SQLALCHEMY_DATABASE_URI = (
+            'postgresql+psycopg2://postgres:jes8026@localhost:5432/permisos'
+        )
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = True

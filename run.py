@@ -7,7 +7,7 @@ from app.extensions import db, login_manager
 from app.routes.auth_routes import auth_bp
 from app.routes.permiso_routes import permiso_bp
 from config import Config
-from app.models.usuario import Usuario
+from app.mo
 from app.routes.docente_routes import docente_bp
 
 
