@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Permiso{% endblock %}
+
+{% block content %}
+
+<h4 class="mb-4">✏️ Editar Permiso</h4>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Docente</label>
+                    <input type="text"
+                           class="form-control"
+                           value="{{ permiso.docente.nombre }}"
+                           disabled>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Tipo de Permiso</label>
+                    <select name="tipo" class="form-select" required>
+                        {% for tipo in [
+                            'Vacaciones',
+                            'Enfermedad',
+                            'Capacitación',
+                            'Permiso Personal',
+                            'Licencia',
+                            'Tiquetera de la felicidad',
+                            'Cumpleaños',
+                            'Jurado de votación'
+                        ] %}
+                            <option value="{{ tipo }}"
+                                {% if permiso.tipo == tipo %}selected{% endif %}>
+                                {{ tipo }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Desde</label>
+                    <input type="date"
+                           name="fecha_inicio"
+                           class="form-control"
+                           value="{{ permiso.fecha_inicio }}"
+                           required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Hasta</label>
+                    <input type="date"
+                           name="fecha_fin"
+                           class="form-control"
+                           value="{{ permiso.fecha_fin }}"
+                           required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Observación</label>
+                    <input type="text"
+                           name="observacion"
+                           class="form-control"
+                           value="{{ permiso.observacion }}">
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('permiso.listado') }}"
+                   class="btn btn-secondary">
+                    ⬅️ Cancelar
+                </a>
+
+                <button type="submit" class="btn btn-primary">
+                    💾 Guardar Cambios
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+{% endblock %}

@@ -101,3 +101,8 @@ def permisos_por_docente(docente_id):
     })
 
 
+@permiso_bp.route("/editar/<int:id>", methods=["GET", "POST"])
+@login_required
+def editar(id):
+    permiso = Permiso.query.get_or_404(id)
+    return render_template("permisos/editar.html", permiso=permiso)
