@@ -23,11 +23,12 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-body">
-                <form method="POST" id="form-permiso">
+                <!-- CORREGIDO: Usa permiso.nuevo en lugar de permiso.crear -->
+                <form method="POST" action="{{ url_for('permiso.nuevo') }}" id="form-permiso">
+
                     <div class="mb-3">
                         <label for="docente_id" class="form-label">Docente *</label>
-                        <select name="docente_id" id="docente_id" class="form-select" required
-                                onchange="cargarPermisosDocente(this.value)">
+                        <select name="docente_id" id="docente_id" class="form-select" required>
                             <option value="">Seleccione un docente...</option>
                             {% for docente in docentes %}
                                 <option value="{{ docente.id }}">
@@ -67,11 +68,15 @@
 
                     <div class="mb-3">
                         <label for="observacion" class="form-label">Observación</label>
-                        <input type="text" name="observacion" id="observacion" class="form-control"
+                            <input type="text" name="observacion" id="observacion" class="form-control"
                                placeholder="Opcional">
                     </div>
 
+                    <!-- Contenedor para mensajes AJAX (si usas envío con AJAX) -->
+                    <div id="mensaje-ajax" class="mb-3"></div>
+
                     <div class="d-flex justify-content-end gap-2">
+                        <!-- CORREGIDO: permiso.listado está correcto -->
                         <a href="{{ url_for('permiso.listado') }}" class="btn btn-secondary">
                             ⬅️ Cancelar
                         </a>
@@ -114,162 +119,7 @@
     </div>
 </div>
 
-{% endblock %}
+<!-- Incluir el archivo JS separado -->
+<script src="{{ url_for('static', filename='js/formulario-permiso.js') }}"></script>
 
-{% block js %}
-<script>
-// Variable global para almacenar permisos
-let permisosDocente = [];
-
-// Función para cargar permisos cuando se selecciona un docente
-function cargarPermisosDocente(docenteId) {
-    const mensajeSeleccion = document.getElementById('mensaje-seleccion');
-    const loading = document.getElementById('loading');
-    const contenedorPermisos = document.getElementById('contenedor-permisos');
-    const listaPermisos = document.getElementById('lista-permisos');
-    const sinPermisos = document.getElementById('sin-permisos');
-    const tituloDocente = document.getElementById('titulo-docente');
-
-    if (!docenteId) {
-        // Si no hay docente seleccionado, mostrar mensaje inicial
-        mensajeSeleccion.classList.remove('d-none');
-        loading.classList.add('d-none');
-        contenedorPermisos.classList.add('d-none');
-        return;
-    }
-
-    // Ocultar mensaje inicial, mostrar loading
-    mensajeSeleccion.classList.add('d-none');
-    loading.classList.remove('d-none');
-    contenedorPermisos.classList.add('d-none');
-    sinPermisos.classList.add('d-none');
-
-    // Obtener el nombre del docente seleccionado
-    const selectDocente = document.getElementById('docente_id');
-    const docenteNombre = selectDocente.options[selectDocente.selectedIndex].text;
-
-    // Hacer petición a la API
-    fetch(`/permisos/api/permisos-docente/${docenteId}`)
-        .then(response => response.json())
-        .then(data => {
-            // Ocultar loading
-            loading.classList.add('d-none');
-
-            if (data.success) {
-                // Actualizar título
-                tituloDocente.textContent = `Docente: ${data.docente}`;
-
-                // Mostrar contenedor
-                contenedorPermisos.classList.remove('d-none');
-
-                // Limpiar lista anterior
-                listaPermisos.innerHTML = '';
-                permisosDocente = data.permisos;
-
-                if (data.total > 0) {
-                    // Mostrar cada permiso
-                    data.permisos.forEach(permiso => {
-                        const item = document.createElement('div');
-                        item.className = 'list-group-item';
-
-                        // Determinar color según tipo
-                        let badgeClass = 'bg-secondary';
-                        if (permiso.tipo.includes('Vacaciones')) badgeClass = 'bg-info';
-                        else if (permiso.tipo.includes('Enfermedad')) badgeClass = 'bg-danger';
-                        else if (permiso.tipo.includes('Capacitación')) badgeClass = 'bg-primary';
-
-                        item.innerHTML = `
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="badge ${badgeClass}">${permiso.tipo}</span>
-                                    <small class="text-muted">${permiso.fecha_inicio} al ${permiso.fecha_fin}</small>
-                                    <br>
-                                    <small>${permiso.dias} días</small>
-                                </div>
-                                <div>
-                                    ${permiso.observacion ? `<small>${permiso.observacion}</small>` : ''}
-                                </div>
-                            </div>
-                        `;
-                        listaPermisos.appendChild(item);
-                    });
-                } else {
-                    // Mostrar mensaje de "sin permisos"
-                    sinPermisos.classList.remove('d-none');
-                }
-            } else {
-                // Mostrar error
-                mensajeSeleccion.textContent = 'Error al cargar los permisos';
-                mensajeSeleccion.className = 'alert alert-danger';
-                mensajeSeleccion.classList.remove('d-none');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            loading.classList.add('d-none');
-            mensajeSeleccion.textContent = 'Error al conectar con el servidor';
-            mensajeSeleccion.className = 'alert alert-danger';
-            mensajeSeleccion.classList.remove('d-none');
-        });
-}
-
-// Función para validar que no se solapen permisos
-function validarSolapamientoPermisos(fechaInicio, fechaFin, docenteId) {
-    const nuevaInicio = new Date(fechaInicio);
-    const nuevaFin = new Date(fechaFin);
-
-    for (const permiso of permisosDocente) {
-        const existenteInicio = new Date(permiso.fecha_inicio.split('/').reverse().join('-'));
-        const existenteFin = new Date(permiso.fecha_fin.split('/').reverse().join('-'));
-
-        // Verificar solapamiento
-        if ((nuevaInicio <= existenteFin && nuevaFin >= existenteInicio)) {
-            return `⚠️ ADVERTENCIA: Este permiso se solapa con uno existente:
-                    ${permiso.tipo} (${permiso.fecha_inicio} al ${permiso.fecha_fin})`;
-        }
-    }
-    return null;
-}
-
-// Validación del formulario
-document.getElementById('form-permiso').addEventListener('submit', function(e) {
-    const docenteId = document.getElementById('docente_id').value;
-    const fechaInicio = document.getElementById('fecha_inicio').value;
-    const fechaFin = document.getElementById('fecha_fin').value;
-
-    if (docenteId && fechaInicio && fechaFin && permisosDocente.length > 0) {
-        const advertencia = validarSolapamientoPermisos(fechaInicio, fechaFin, docenteId);
-        if (advertencia && !confirm(advertencia + "\n\n¿Desea continuar de todos modos?")) {
-            e.preventDefault();
-        }
-    }
-});
-
-// Configurar fechas por defecto
-document.addEventListener('DOMContentLoaded', function() {
-    const hoy = new Date().toISOString().split('T')[0];
-    const fechaInicio = document.getElementById('fecha_inicio');
-    const fechaFin = document.getElementById('fecha_fin');
-
-    fechaInicio.min = hoy;
-    fechaInicio.value = hoy;
-    fechaFin.value = hoy;
-
-    // Validación de fechas
-    fechaInicio.addEventListener('change', function() {
-        fechaFin.min = this.value;
-        if (fechaFin.value < this.value) {
-            fechaFin.value = this.value;
-        }
-    });
-
-    // Validación de fecha fin
-    fechaFin.addEventListener('change', function() {
-        if (this.value < fechaInicio.value) {
-            alert('La fecha de fin no puede ser anterior a la fecha de inicio');
-            this.value = fechaInicio.value;
-        }
-    });
-});
-</script>
 {% endblock %}
