@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-
+# Al inicio del archivo, DESPUÉS de los imports existentes
+from datetime import datetime
+from app.middleware.auth_middleware import acceso_permitido  # NUEVO IMPORT
 from app.extensions import db
 from app.models.permiso import Permiso
 from app.models.docente import Docente
