@@ -52,7 +52,11 @@ def create_app():
     def index():
         return "SistPROF funcionando en Render 🚀"
 
-    @app.route("/__ping")
-    def ping():
-        return "APP OK"
+    @app.route("/__env")
+    def env():
+        import os
+        return {
+            "DATABASE_URL": os.getenv("DATABASE_URL"),
+            "RENDER_SERVICE_NAME": os.getenv("RENDER_SERVICE_NAME")
+        }
     return app
