@@ -1,6 +1,7 @@
 from flask import Flask
 import os
-from app.extensions import db, login_manager
+from .extensions import db, login_manager
+from flask_migrate import Migrate  # ⚠️ LÍNEA AGREGADA
 
 
 def create_app():
@@ -18,6 +19,8 @@ def create_app():
     # Inicializar extensiones
     db.init_app(app)
     login_manager.init_app(app)
+
+    migrate = Migrate(app, db)  # ⚠️ LÍNEA AGREGADA
 
     # ⭐⭐ IMPORTANTE: Importar modelos AQUÍ para registrarlos una sola vez
     from app.models.usuario import Usuario
