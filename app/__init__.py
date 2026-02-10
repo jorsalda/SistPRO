@@ -1,7 +1,8 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 import os
+from flask_login import current_user
 from .extensions import db, login_manager
-from flask_migrate import Migrate  # ⚠️ LÍNEA AGREGADA
+from flask_migrate import Migrate
 
 
 def create_app():
@@ -20,13 +21,26 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
 
-    migrate = Migrate(app, db)  # ⚠️ LÍNEA AGREGADA
+    migrate = Migrate(app, db)
+
+    # ✅ FIX CRÍTICO: Verificar y crear/arreglar columna 'nombre' si no existe
+    with app.app_context():
+        try:
+            # 1. Agregar columna si no existe
+            db.session.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nombre VARCHAR(100)")
+            # 2. Hacerla nullable
+            db.session.execute("ALTER TABLE usuarios ALTER COLUMN nombre DROP NOT NULL")
+            db.session.commit()
+            print("✅ Columna 'nombre' verificada/arreglada en la base de datos")
+        except Exception as e:
+            db.session.rollback()
+            print(f"ℹ️ Nota: {e}")
 
     # ⭐⭐ IMPORTANTE: Importar modelos AQUÍ para registrarlos una sola vez
-    from app.models.usuario import Usuario
-    from app.models.colegio import Colegio
-    from app.models.docente import Docente
-    from app.models.permiso import Permiso
+    from .models.usuario import Usuario
+    from .models.colegio import Colegio
+    from .models.docente import Docente
+    from .models.permiso import Permiso
 
     # User loader
     @login_manager.user_loader
@@ -34,25 +48,22 @@ def create_app():
         return db.session.get(Usuario, int(user_id))
 
     # Blueprints
-    from app.routes.auth_routes import auth_bp
-    from app.routes.permiso_routes import permiso_bp
-    from app.routes.docente_routes import docente_bp
+    from .routes.auth_routes import auth_bp
+    from .routes.permiso_routes import permiso_bp
+    from .routes.docente_routes import docente_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(permiso_bp)
     app.register_blueprint(docente_bp)
 
     # Ruta raíz
-    from flask import redirect, url_for
-    from flask_login import current_user
-
     @app.route("/")
     def index():
         if current_user.is_authenticated:
-            return redirect(url_for("permiso.listado"))  # ← AQUÍ
+            return redirect(url_for("permiso.listado"))
         return redirect(url_for("auth.login"))
 
-    # Crear tablas
+    # Crear tablas (para desarrollo)
     with app.app_context():
         db.create_all()
 
