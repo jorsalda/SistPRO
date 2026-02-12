@@ -3,6 +3,7 @@ import os
 from flask_login import current_user
 from .extensions import db, login_manager
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 
 migrate = Migrate()  # se declara UNA sola vez
 
@@ -52,5 +53,5 @@ def create_app():
     app.register_blueprint(docente_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(colegio_bp)  # ← AGREGAR ESTA LÍNEA
-
+    CSRFProtect(app)
     return app

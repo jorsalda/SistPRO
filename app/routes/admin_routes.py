@@ -72,9 +72,21 @@ def dashboard():
 @login_required
 @superuser_required
 def lista_usuarios():
-    """Muestra todos los usuarios del sistema"""
-    usuarios = Usuario.query.order_by(Usuario.fecha_registro.desc()).all()
-    return render_template("admin/usuarios.html", usuarios=usuarios)
+    """Lista todos los usuarios del sistema (separados por estado)"""
+    # Obtener todos los usuarios
+    usuarios = Usuario.query.all()
+
+    # Separar en dos listas
+    usuarios_aprobados = [u for u in usuarios if u.is_approved and not u.is_superadmin]
+    usuarios_prueba = [u for u in usuarios if not u.is_approved and not u.is_superadmin]
+    superadmins = [u for u in usuarios if u.is_superadmin]
+
+    return render_template(
+        "admin/usuarios.html",
+        usuarios_aprobados=usuarios_aprobados,
+        usuarios_prueba=usuarios_prueba,
+        superadmins=superadmins
+    )
 
 
 # ════════════════════════════════════════════════════════════════

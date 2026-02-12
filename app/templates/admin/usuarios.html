@@ -4,9 +4,9 @@
 
 {% block admin_content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-people"></i> Lista de Usuarios</h2>
+    <h2><i class="bi bi-people"></i> Gestión de Usuarios</h2>
     <div class="d-flex gap-2">
-        <a href="{{ url_for('admin.lista_usuarios') }}" 
+        <a href="{{ url_for('admin.lista_usuarios') }}"
            class="btn btn-primary">
             <i class="bi bi-arrow-clockwise"></i> Actualizar
         </a>
@@ -24,9 +24,147 @@
     {% endif %}
 {% endwith %}
 
+<!-- Tabla 1: Usuarios en Período de Prueba -->
 <div class="card shadow-sm border-0 mb-4">
-    <div class="card-header bg-white border-bottom">
-        <h5 class="mb-0">Usuarios Registrados ({{ usuarios|length }})</h5>
+    <div class="card-header bg-info bg-opacity-10 border-bottom">
+        <h5 class="mb-0">
+            <i class="bi bi-hourglass-split"></i> Usuarios en Período de Prueba
+            <span class="badge bg-info ms-2">{{ usuarios_prueba|length }}</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if usuarios_prueba|length == 0 %}
+            <div class="text-center py-4">
+                <i class="bi bi-hourglass-split fs-1 text-muted mb-3"></i>
+                <p class="text-muted">No hay usuarios en período de prueba</p>
+            </div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Registrado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios_prueba %}
+                        <tr class="table-light">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-person-circle text-info me-2"></i>
+                                    {{ usuario.nombre|default('Sin nombre') }}
+                                </div>
+                            </td>
+                            <td>{{ usuario.email }}</td>
+                            <td>
+                                {% if usuario.created_at %}
+                                    {{ usuario.created_at.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form action="{{ url_for('admin.aprobar_usuario', usuario_id=usuario.id) }}"
+                                      method="POST"
+                                      class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-success"
+                                            title="Aprobar usuario">
+                                        <i class="bi bi-check-circle"></i> Aprobar
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('admin.detalle_usuario', usuario_id=usuario.id) }}"
+                                   class="btn btn-sm btn-outline-primary ms-1">
+                                    <i class="bi bi-eye"></i> Ver
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tabla 2: Usuarios Aprobados -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-success bg-opacity-10 border-bottom">
+        <h5 class="mb-0">
+            <i class="bi bi-check-circle"></i> Usuarios Aprobados
+            <span class="badge bg-success ms-2">{{ usuarios_aprobados|length }}</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if usuarios_aprobados|length == 0 %}
+            <div class="text-center py-4">
+                <i class="bi bi-check-circle fs-1 text-muted mb-3"></i>
+                <p class="text-muted">No hay usuarios aprobados</p>
+            </div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Aprobado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios_aprobados %}
+                        <tr class="table-success">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-person-check-fill text-success me-2"></i>
+                                    {{ usuario.nombre|default('Sin nombre') }}
+                                </div>
+                            </td>
+                            <td>{{ usuario.email }}</td>
+                            <td>
+                                {% if usuario.fecha_aprobacion %}
+                                    {{ usuario.fecha_aprobacion.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form action="{{ url_for('admin.bloquear_usuario', usuario_id=usuario.id) }}"
+                                      method="POST"
+                                      class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-danger"
+                                            title="Bloquear usuario">
+                                        <i class="bi bi-lock"></i> Bloquear
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('admin.detalle_usuario', usuario_id=usuario.id) }}"
+                                   class="btn btn-sm btn-outline-primary ms-1">
+                                    <i class="bi bi-eye"></i> Ver
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tabla 3: Superadministradores -->
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-warning bg-opacity-10 border-bottom">
+        <h5 class="mb-0">
+            <i class="bi bi-shield-fill-exclamation"></i> Superadministradores
+            <span class="badge bg-warning ms-2">{{ superadmins|length }}</span>
+        </h5>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -35,57 +173,22 @@
                     <tr>
                         <th>Usuario</th>
                         <th>Email</th>
-                        <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for usuario in usuarios %}
-                    <tr {% if usuario.is_superadmin %}class="table-primary"{% endif %}>
+                    {% for usuario in superadmins %}
+                    <tr class="table-warning">
                         <td>
                             <div class="d-flex align-items-center">
-                                {% if usuario.is_superadmin %}
-                                    <span class="badge bg-warning me-2">👑</span>
-                                {% endif %}
-                                {{ usuario.nombre|default('Usuario sin nombre') }}
+                                <i class="bi bi-crown-fill text-warning me-2"></i>
+                                <strong>{{ usuario.nombre|default('Sin nombre') }}</strong>
                             </div>
                         </td>
                         <td>{{ usuario.email }}</td>
                         <td>
-                            {% if usuario.is_superadmin %}
-                                <span class="badge bg-warning">Superadmin</span>
-                            {% elif usuario.is_approved %}
-                                <span class="badge bg-success">Aprobado</span>
-                            {% elif usuario.is_active %}
-                                <span class="badge bg-info">En prueba</span>
-                            {% else %}
-                                <span class="badge bg-danger">Bloqueado</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if not usuario.is_superadmin %}
-                                {% if usuario.is_approved %}
-                                    <form action="{{ url_for('admin.bloquear_usuario', usuario_id=usuario.id) }}" 
-                                          method="POST" 
-                                          class="d-inline">
-                                        <button type="submit" 
-                                                class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-lock"></i> Bloquear
-                                        </button>
-                                    </form>
-                                {% else %}
-                                    <form action="{{ url_for('admin.aprobar_usuario', usuario_id=usuario.id) }}" 
-                                          method="POST" 
-                                          class="d-inline">
-                                        <button type="submit" 
-                                                class="btn btn-sm btn-outline-success">
-                                            <i class="bi bi-check-circle"></i> Aprobar
-                                        </button>
-                                    </form>
-                                {% endif %}
-                            {% endif %}
-                            <a href="{{ url_for('admin.detalle_usuario', usuario_id=usuario.id) }}" 
-                               class="btn btn-sm btn-outline-primary ms-1">
+                            <a href="{{ url_for('admin.detalle_usuario', usuario_id=usuario.id) }}"
+                               class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-eye"></i> Ver
                             </a>
                         </td>
