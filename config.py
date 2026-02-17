@@ -1,5 +1,4 @@
-﻿# config.py
-import os
+﻿import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,11 +15,9 @@ class Config:
 
         SQLALCHEMY_DATABASE_URI = database_url
         SQLALCHEMY_ENGINE_OPTIONS = {
-            "pool_pre_ping": True,  # ✅ Verifica conexiones antes de usarlas
-            "pool_recycle": 300,  # ✅ Recicla conexiones cada 5 minutos (evita SSL corrupto)
-            "connect_args": {
-                "sslmode": "require"  # ✅ Requiere SSL (obligatorio en Render)
-            }
+            "pool_pre_ping": True,
+            "pool_recycle": 300,
+
         }
     else:
         SQLALCHEMY_DATABASE_URI = (
@@ -29,3 +26,13 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = True
+
+    # 🔹 Configuración de Email (Flask-Mail) - CORREGIDA
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
+    MAIL_USE_TLS = True  # ✅ Forzar TLS (NO SSL)
+    MAIL_USE_SSL = False  # ✅ SSL debe ser False
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'jorgesaldarriaga3544@gmail.com')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', MAIL_USERNAME)
+
