@@ -3,7 +3,6 @@ venv/
 .venv/
 env/
 ENV/
-.vscode/
 
 # Archivos de Python
 __pycache__/
@@ -30,6 +29,7 @@ wheels/
 # Base de datos
 *.db
 *.sqlite3
+instance/
 
 # IDE
 .idea/
@@ -43,9 +43,20 @@ Thumbs.db
 
 # Logs
 *.log
+logs/
 
-# Configuraciones sensibles
+# 🔐 Configuraciones sensibles (CRÍTICO)
 .env
+*.env
+.env.*
 .secrets
+*.pem
+*.key
 
-.idea/
+# 🌐 Flask specific
+webassets-cache/
+
+# 🧪 Testing
+.pytest_cache/
+.coverage
+htmlcov/
