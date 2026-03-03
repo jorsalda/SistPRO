@@ -120,8 +120,9 @@
                         <td>
                             <a href="{{ url_for('permiso.editar', id=permiso.id) }}" 
                                class="btn btn-sm btn-warning">✏️ Editar</a>
-                            <form action="{{ url_for('permiso.eliminar', id=permiso.id) }}" 
+                            <form action="{{ url_for('permiso.eliminar', id=permiso.id) }}"
                                   method="post" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-sm btn-danger" 
                                         onclick="return confirm('¿Eliminar este permiso?')">
                                     🗑️ Eliminar

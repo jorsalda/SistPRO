@@ -25,7 +25,7 @@
             <div class="card-body">
                 <!-- CORREGIDO: Usa permiso.nuevo en lugar de permiso.crear -->
                 <form method="POST" action="{{ url_for('permiso.nuevo') }}" id="form-permiso">
-
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="mb-3">
                         <label for="docente_id" class="form-label">Docente *</label>
                         <select name="docente_id" id="docente_id" class="form-select" required>

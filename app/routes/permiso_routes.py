@@ -8,7 +8,7 @@ from app.models.permiso import Permiso
 from app.models.docente import Docente
 from datetime import datetime
 
-permiso_bp = Blueprint("permiso", __name__, url_prefix="/permisos")
+permiso_bp = Blueprint("permiso", __name__, url_prefix="/dashboard/permisos")
 
 @permiso_bp.route("/")
 @login_required
@@ -107,4 +107,18 @@ def permisos_por_docente(docente_id):
 @login_required
 def editar(id):
     permiso = Permiso.query.get_or_404(id)
+
+    if request.method == "POST":
+        # Actualizar los campos
+        permiso.tipo = request.form.get("tipo")
+        permiso.fecha_inicio = request.form.get("fecha_inicio")
+        permiso.fecha_fin = request.form.get("fecha_fin")
+        permiso.observacion = request.form.get("observacion")
+
+        # Guardar cambios
+        db.session.commit()
+
+        flash("✅ Permiso actualizado correctamente", "success")
+        return redirect(url_for("permiso.listado"))
+
     return render_template("permisos/editar.html", permiso=permiso)

@@ -13,6 +13,8 @@ class Usuario(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     nombre = db.Column(db.String(100), nullable=True)
+    failed_attempts = db.Column(db.Integer, default=0, nullable=False)
+    locked_until = db.Column(db.DateTime, nullable=True)
 
     colegio_id = db.Column(
         db.Integer,

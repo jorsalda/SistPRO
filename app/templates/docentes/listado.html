@@ -67,6 +67,7 @@
                                 <form action="{{ url_for('docente.eliminar', id=docente.id) }}"
                                       method="post"
                                       onsubmit="return confirm('¿Eliminar este docente?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit" class="btn btn-outline-danger">
                                         🗑️
                                     </button>
