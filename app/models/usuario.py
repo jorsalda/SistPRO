@@ -21,25 +21,34 @@ class Usuario(db.Model, UserMixin):
         db.ForeignKey('colegios.id'),
         nullable=True
     )
-    colegio = db.relationship('Colegio', backref='usuarios')
+    colegio = db.relationship('Colegio', back_populates='usuarios', lazy=True)
+
 
     # --------------------
     # Control de acceso
     # --------------------
-    rol = db.Column(db.Enum('superadmin', 'admin_colegio', 'docente', 'estudiante', 'acudiente', name='rol_usuario'),
-                    default='estudiante')
-    is_superadmin = db.Column(db.Boolean, default=False)
+    rol = db.Column(
+        db.Enum('superadmin', 'admin_colegio', 'docente', 'estudiante', 'acudiente', name='rol_usuario'),
+        default='estudiante'
+    )
     is_active = db.Column(db.Boolean, default=True)
     is_approved = db.Column(db.Boolean, default=False)
+
+    # ✅ COMPATIBILIDAD CON CÓDIGO EXISTENTE
+    @property
+    def is_superadmin(self):
+        return self.rol == 'superadmin'
 
     # --------------------
     # Fechas y prueba
     # --------------------
     fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
     fecha_aprobacion = db.Column(db.DateTime, nullable=True)
+
+    # ✅ Columna física en la BD para la duración del período de prueba
     dias_prueba = db.Column(db.Integer, default=15)
 
-    # Fecha explícita de expiración (se queda)
+    # ✅ Columna física en la BD para la fecha límite
     fecha_expiracion = db.Column(db.DateTime, nullable=True)
 
     # --------------------
@@ -77,8 +86,10 @@ class Usuario(db.Model, UserMixin):
             return False, "Prueba vencida"
 
         # Fallback por días de prueba (compatibilidad)
+        # Usamos self.dias_prueba si existe, sino 15
+        dias_prueba = self.dias_prueba if self.dias_prueba else 15
         dias_transcurridos = (datetime.utcnow() - self.fecha_registro).days
-        dias_restantes = self.dias_prueba - dias_transcurridos
+        dias_restantes = dias_prueba - dias_transcurridos
 
         if dias_restantes >= 0:
             return True, f"Prueba ({dias_restantes} días restantes)"
@@ -105,8 +116,9 @@ class Usuario(db.Model, UserMixin):
                 return f"⏳ En prueba ({dias} días restantes)"
             return "❌ Prueba vencida"
 
+        dias_prueba = self.dias_prueba if self.dias_prueba else 15
         dias_transcurridos = (datetime.utcnow() - self.fecha_registro).days
-        dias_restantes = self.dias_prueba - dias_transcurridos
+        dias_restantes = dias_prueba - dias_transcurridos
 
         if dias_restantes >= 0:
             return f"⏳ En prueba ({dias_restantes} días restantes)"
